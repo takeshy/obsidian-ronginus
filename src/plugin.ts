@@ -2,7 +2,7 @@ import { Plugin, WorkspaceLeaf } from "obsidian";
 import { DebateView, VIEW_TYPE_DEBATE } from "./ui/DebateView";
 import { SettingsTab } from "./ui/SettingsTab";
 import { RonginusSettings, DEFAULT_SETTINGS, DEFAULT_CLI_CONFIG } from "./types";
-import { initLocale } from "./i18n";
+import { initLocale, t } from "./i18n";
 
 export default class RonginusPlugin extends Plugin {
   settings: RonginusSettings = { ...DEFAULT_SETTINGS };
@@ -48,8 +48,18 @@ export default class RonginusPlugin extends Plugin {
 
   async loadSettings(): Promise<void> {
     const loaded = await this.loadData();
+    const i18n = t();
+
+    // Use locale-specific default prompts
+    const defaultPrompts = {
+      systemPrompt: i18n.defaultSystemPrompt,
+      conclusionPrompt: i18n.defaultConclusionPrompt,
+      votePrompt: i18n.defaultVotePrompt,
+    };
+
     this.settings = {
       ...DEFAULT_SETTINGS,
+      ...defaultPrompts,
       ...loaded,
       cliConfig: {
         ...DEFAULT_CLI_CONFIG,

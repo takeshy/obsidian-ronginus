@@ -15,6 +15,7 @@ import type {
   DebatePhase,
 } from "../types";
 import { CliProviderManager, CliProviderInterface } from "./cliProvider";
+import { t } from "../i18n";
 
 export interface DebateEventCallbacks {
   onPhaseChange?: (phase: DebatePhase) => void;
@@ -290,21 +291,21 @@ export class DebateEngine {
     previousTurns: DebateTurn[],
     isLastTurn: boolean
   ): string {
-    let context = `# Debate Theme\n${theme}\n\n`;
+    const i18n = t();
+    let context = `# ${i18n.debateThemeHeader}\n${theme}\n\n`;
 
     if (previousTurns.length > 0) {
-      context += `# Previous Discussion\n\n`;
+      context += `# ${i18n.previousDiscussion}\n\n`;
       for (const turn of previousTurns) {
-        context += `## Turn ${turn.turnNumber}\n\n`;
+        context += `## ${i18n.turn} ${turn.turnNumber}\n\n`;
         for (const response of turn.responses) {
           const displayName = this.getDisplayName(response.cliType);
           context += `### ${displayName}\n${response.content}\n\n`;
         }
       }
 
-      context += `# Your Task\n`;
-      context += `Consider the perspectives shared above and provide your thoughts. `;
-      context += `Build upon, challenge, or refine the ideas presented.\n\n`;
+      context += `# ${i18n.yourTask}\n`;
+      context += `${i18n.yourTaskInstruction}\n\n`;
     }
 
     if (isLastTurn) {
@@ -375,11 +376,12 @@ export class DebateEngine {
    * Build context for conclusion phase
    */
   private buildConclusionContext(theme: string, turns: DebateTurn[]): string {
-    let context = `# Debate Theme\n${theme}\n\n`;
-    context += `# Complete Discussion\n\n`;
+    const i18n = t();
+    let context = `# ${i18n.debateThemeHeader}\n${theme}\n\n`;
+    context += `# ${i18n.completeDiscussion}\n\n`;
 
     for (const turn of turns) {
-      context += `## Turn ${turn.turnNumber}\n\n`;
+      context += `## ${i18n.turn} ${turn.turnNumber}\n\n`;
       for (const response of turn.responses) {
         const displayName = this.getDisplayName(response.cliType);
         context += `### ${displayName}\n${response.content}\n\n`;
@@ -448,12 +450,13 @@ export class DebateEngine {
    * Build context for voting phase
    */
   private buildVotingContext(theme: string, conclusions: DebateConclusion[]): string {
-    let context = `# Debate Theme\n${theme}\n\n`;
-    context += `# Final Conclusions\n\n`;
+    const i18n = t();
+    let context = `# ${i18n.debateThemeHeader}\n${theme}\n\n`;
+    context += `# ${i18n.finalConclusions}\n\n`;
 
     for (const conclusion of conclusions) {
       const displayName = this.getDisplayName(conclusion.cliType);
-      context += `## ${displayName}'s Conclusion\n${conclusion.content}\n\n`;
+      context += `## ${i18n.conclusionOf(displayName)}\n${conclusion.content}\n\n`;
     }
 
     context += `\n${this.settings.votePrompt}\n`;

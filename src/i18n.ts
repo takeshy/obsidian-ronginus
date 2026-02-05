@@ -93,6 +93,20 @@ interface Translations {
   runGeminiAuth: string;
   runClaudeLogin: string;
   setOpenaiKey: string;
+
+  // Default prompts
+  defaultSystemPrompt: string;
+  defaultConclusionPrompt: string;
+  defaultVotePrompt: string;
+
+  // Debate context strings
+  debateThemeHeader: string;
+  previousDiscussion: string;
+  yourTask: string;
+  yourTaskInstruction: string;
+  completeDiscussion: string;
+  finalConclusions: string;
+  conclusionOf: (name: string) => string;
 }
 
 const en: Translations = {
@@ -184,6 +198,26 @@ const en: Translations = {
   runGeminiAuth: "Run: gemini auth login",
   runClaudeLogin: "Run: claude login",
   setOpenaiKey: "Set OPENAI_API_KEY environment variable",
+
+  // Default prompts
+  defaultSystemPrompt: `You are discussing a theme with other AI assistants. Share your thoughts concisely.`,
+  defaultConclusionPrompt: `Based on all the discussion so far, please provide your FINAL CONCLUSION on the theme.
+Be clear and decisive. Summarize your position in a well-structured manner.
+Start your response with "CONCLUSION:" followed by your final answer.`,
+  defaultVotePrompt: `You have seen the conclusions from all participants.
+Now you must vote for the BEST conclusion (you can also vote for your own if you believe it's the best).
+Consider clarity, logical reasoning, and completeness.
+Respond with ONLY the name of the participant you vote for (Gemini, Claude, or Codex) followed by a brief reason.
+Format: VOTE: [Name] - [Reason]`,
+
+  // Debate context strings
+  debateThemeHeader: "Debate Theme",
+  previousDiscussion: "Previous Discussion",
+  yourTask: "Your Task",
+  yourTaskInstruction: "Consider the perspectives shared above and provide your thoughts. Build upon, challenge, or refine the ideas presented.",
+  completeDiscussion: "Complete Discussion",
+  finalConclusions: "Final Conclusions",
+  conclusionOf: (name) => `${name}'s Conclusion`,
 };
 
 const ja: Translations = {
@@ -275,6 +309,26 @@ const ja: Translations = {
   runGeminiAuth: "実行: gemini auth login",
   runClaudeLogin: "実行: claude login",
   setOpenaiKey: "OPENAI_API_KEY環境変数を設定",
+
+  // Default prompts
+  defaultSystemPrompt: `他のAIアシスタントとテーマについて議論しています。簡潔に考えを述べてください。`,
+  defaultConclusionPrompt: `これまでの議論を踏まえて、テーマについての最終結論を述べてください。
+明確かつ決定的に。立場を整理された形でまとめてください。
+回答は「結論：」から始めてください。`,
+  defaultVotePrompt: `全参加者の結論を確認しました。
+最も優れた結論に投票してください（自分の結論が最も優れていると思えば、自分に投票しても構いません）。
+明確さ、論理的な推論、完全性を考慮してください。
+投票する参加者名（Gemini、Claude、またはCodex）と簡単な理由を回答してください。
+形式：投票: [名前] - [理由]`,
+
+  // Debate context strings
+  debateThemeHeader: "ディベートテーマ",
+  previousDiscussion: "これまでの議論",
+  yourTask: "あなたの課題",
+  yourTaskInstruction: "上記で共有された視点を考慮し、あなたの考えを述べてください。提示されたアイデアを発展させたり、異議を唱えたり、洗練させたりしてください。",
+  completeDiscussion: "議論全体",
+  finalConclusions: "最終結論",
+  conclusionOf: (name) => `${name}の結論`,
 };
 
 const translations: Record<Locale, Translations> = { en, ja };

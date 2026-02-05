@@ -91,9 +91,7 @@ export interface RonginusSettings {
 
 export const DEFAULT_SETTINGS: RonginusSettings = {
   defaultTurns: 2,
-  systemPrompt: `You are participating in a structured debate with other AI assistants.
-Your role is to think critically about the given theme and provide your unique perspective.
-Be concise but thorough. Consider different angles and potential counterarguments.`,
+  systemPrompt: `You are discussing a theme with other AI assistants. Share your thoughts concisely.`,
   conclusionPrompt: `Based on all the discussion so far, please provide your FINAL CONCLUSION on the theme.
 Be clear and decisive. Summarize your position in a well-structured manner.
 Start your response with "CONCLUSION:" followed by your final answer.`,
