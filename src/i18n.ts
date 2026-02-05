@@ -98,6 +98,7 @@ interface Translations {
   defaultSystemPrompt: string;
   defaultConclusionPrompt: string;
   defaultVotePrompt: string;
+  voteFormatInstruction: string;
 
   // Debate context strings
   debateThemeHeader: string;
@@ -107,13 +108,34 @@ interface Translations {
   completeDiscussion: string;
   finalConclusions: string;
   conclusionOf: (name: string) => string;
+
+  // Participant selection
+  participants: string;
+  debateParticipants: string;
+  voteParticipants: string;
+  addParticipant: string;
+  addDebateParticipant: string;
+  addVoter: string;
+  removeParticipant: string;
+  role: string;
+  rolePlaceholder: string;
+  user: string;
+  yourTurn: string;
+  yourRole: string;
+  submitResponse: string;
+  selectVote: string;
+  voteReason: string;
+  submitVote: string;
+  needOneParticipant: string;
+  type: string;
+  yourPosition: string;
 }
 
 const en: Translations = {
   // Settings
   settingsTitle: "Ronginus - AI Debate Settings",
   cliProviders: "CLI Providers",
-  cliIntro: "Configure the AI CLI tools for debates. At least 2 verified CLIs are required.",
+  cliIntro: "Configure the AI CLI tools for debates. At least 1 verified CLI is required.",
   geminiCli: "Gemini CLI",
   claudeCli: "Claude CLI",
   codexCli: "Codex CLI",
@@ -137,8 +159,8 @@ const en: Translations = {
   invalidChars: "Path contains invalid characters",
   cliVerifiedSuccess: (name) => `${name} CLI verified successfully`,
   cliDisabled: (name) => `${name} CLI disabled`,
-  clisVerifiedReady: (count) => `${count} CLIs verified - Ready for debates`,
-  clisVerifiedNeed: (count) => `${count} CLI verified - Need at least 2 for debates`,
+  clisVerifiedReady: (count) => `${count} CLI(s) verified - Ready for debates`,
+  clisVerifiedNeed: (_count) => `No CLIs verified - Need at least 1 for debates`,
 
   // General settings
   general: "General",
@@ -152,7 +174,7 @@ const en: Translations = {
   conclusionPrompt: "Conclusion prompt",
   conclusionPromptDesc: "Prompt for final conclusion",
   votePrompt: "Vote prompt",
-  votePromptDesc: "Prompt for voting phase",
+  votePromptDesc: "Prompt for voting phase. Format instruction (VOTE: [Name] - [Reason]) is automatically appended.",
 
   // Debate Panel
   debateArena: "AI Debate Arena",
@@ -184,7 +206,7 @@ const en: Translations = {
 
   // Notices
   enterTheme: "Please enter a debate theme",
-  needTwoClis: "At least 2 verified CLIs are required. Please verify CLIs in settings.",
+  needTwoClis: "At least 1 verified CLI is required. Please verify CLIs in settings.",
   debateSaved: (path) => `Debate saved to ${path}`,
   debateSaveFailed: (error) => `Failed to save debate: ${error}`,
   debateStopped: "Debate stopped",
@@ -206,9 +228,8 @@ Be clear and decisive. Summarize your position in a well-structured manner.
 Start your response with "CONCLUSION:" followed by your final answer.`,
   defaultVotePrompt: `You have seen the conclusions from all participants.
 Now you must vote for the BEST conclusion (you can also vote for your own if you believe it's the best).
-Consider clarity, logical reasoning, and completeness.
-Respond with ONLY the name of the participant you vote for (Gemini, Claude, or Codex) followed by a brief reason.
-Format: VOTE: [Name] - [Reason]`,
+Consider clarity, logical reasoning, and completeness.`,
+  voteFormatInstruction: `Format: VOTE: [Name] - [Reason]`,
 
   // Debate context strings
   debateThemeHeader: "Debate Theme",
@@ -218,13 +239,34 @@ Format: VOTE: [Name] - [Reason]`,
   completeDiscussion: "Complete Discussion",
   finalConclusions: "Final Conclusions",
   conclusionOf: (name) => `${name}'s Conclusion`,
+
+  // Participant selection
+  participants: "Participants",
+  debateParticipants: "Debate Participants",
+  voteParticipants: "Vote Participants",
+  addParticipant: "Add",
+  addDebateParticipant: "Add Debate Participant",
+  addVoter: "Add Voter",
+  removeParticipant: "Remove",
+  role: "Role",
+  rolePlaceholder: "e.g. Affirmative, Critical...",
+  user: "User",
+  yourTurn: "Your Turn",
+  yourRole: "Your role",
+  submitResponse: "Submit",
+  selectVote: "Select your vote",
+  voteReason: "Reason",
+  submitVote: "Submit Vote",
+  needOneParticipant: "At least 1 participant is required",
+  type: "Type",
+  yourPosition: "Your position",
 };
 
 const ja: Translations = {
   // Settings
-  settingsTitle: "Ronginus - AIディベート設定",
+  settingsTitle: "Ronginus - AI討論設定",
   cliProviders: "CLIプロバイダー",
-  cliIntro: "ディベート用のAI CLIツールを設定します。少なくとも2つの認証済みCLIが必要です。",
+  cliIntro: "討論用のAI CLIツールを設定します。少なくとも1つの認証済みCLIが必要です。",
   geminiCli: "Gemini CLI",
   claudeCli: "Claude CLI",
   codexCli: "Codex CLI",
@@ -248,13 +290,13 @@ const ja: Translations = {
   invalidChars: "パスに無効な文字が含まれています",
   cliVerifiedSuccess: (name) => `${name} CLIの認証に成功しました`,
   cliDisabled: (name) => `${name} CLIを無効化しました`,
-  clisVerifiedReady: (count) => `${count}個のCLIが認証済み - ディベート可能`,
-  clisVerifiedNeed: (count) => `${count}個のCLIが認証済み - ディベートには2つ以上必要`,
+  clisVerifiedReady: (count) => `${count}個のCLIが認証済み - 討論可能`,
+  clisVerifiedNeed: (count) => `${count}個のCLIが認証済み - 討論には1つ以上必要`,
 
   // General settings
   general: "一般",
   outputFolder: "出力フォルダ",
-  outputFolderDesc: "ディベートノートを保存するフォルダ",
+  outputFolderDesc: "討論ノートを保存するフォルダ",
 
   // Prompts
   prompts: "プロンプト",
@@ -263,18 +305,18 @@ const ja: Translations = {
   conclusionPrompt: "結論プロンプト",
   conclusionPromptDesc: "最終結論用のプロンプト",
   votePrompt: "投票プロンプト",
-  votePromptDesc: "投票フェーズ用のプロンプト",
+  votePromptDesc: "投票フェーズ用のプロンプト。フォーマット指示（投票: [名前] - [理由]）は自動的に付与されます。",
 
   // Debate Panel
-  debateArena: "AIディベートアリーナ",
+  debateArena: "AI討論アリーナ",
   debateSubtitle: "Gemini vs Claude vs Codex",
-  debateTheme: "ディベートテーマ",
-  debateThemePlaceholder: "AIにディベートさせるトピックを入力...",
+  debateTheme: "討論テーマ",
+  debateThemePlaceholder: "AIに討論させるトピックを入力...",
   numberOfTurns: "ターン数",
-  startDebate: "ディベート開始",
+  startDebate: "討論開始",
   stopDebate: "停止",
   saveAsNote: "ノートに保存",
-  newDebate: "新規ディベート",
+  newDebate: "新規討論",
   theme: "テーマ",
   turn: "ターン",
   thinking: "思考中...",
@@ -294,13 +336,13 @@ const ja: Translations = {
   noWinner: "勝者なし",
 
   // Notices
-  enterTheme: "ディベートテーマを入力してください",
-  needTwoClis: "少なくとも2つの認証済みCLIが必要です。設定でCLIを認証してください。",
-  debateSaved: (path) => `ディベートを ${path} に保存しました`,
-  debateSaveFailed: (error) => `ディベートの保存に失敗しました: ${error}`,
-  debateStopped: "ディベートを停止しました",
-  debateNotComplete: "ディベートがまだ完了していません",
-  debateError: (error) => `ディベートエラー: ${error}`,
+  enterTheme: "討論テーマを入力してください",
+  needTwoClis: "少なくとも1つの認証済みCLIが必要です。設定でCLIを認証してください。",
+  debateSaved: (path) => `討論を ${path} に保存しました`,
+  debateSaveFailed: (error) => `討論の保存に失敗しました: ${error}`,
+  debateStopped: "討論を停止しました",
+  debateNotComplete: "討論がまだ完了していません",
+  debateError: (error) => `討論エラー: ${error}`,
 
   // Install commands
   installGemini: "npm install -g @google/gemini-cli",
@@ -317,18 +359,38 @@ const ja: Translations = {
 回答は「結論：」から始めてください。`,
   defaultVotePrompt: `全参加者の結論を確認しました。
 最も優れた結論に投票してください（自分の結論が最も優れていると思えば、自分に投票しても構いません）。
-明確さ、論理的な推論、完全性を考慮してください。
-投票する参加者名（Gemini、Claude、またはCodex）と簡単な理由を回答してください。
-形式：投票: [名前] - [理由]`,
+明確さ、論理的な推論、完全性を考慮してください。`,
+  voteFormatInstruction: `形式：投票: [名前] - [理由]`,
 
   // Debate context strings
-  debateThemeHeader: "ディベートテーマ",
+  debateThemeHeader: "討論テーマ",
   previousDiscussion: "これまでの議論",
   yourTask: "あなたの課題",
   yourTaskInstruction: "上記で共有された視点を考慮し、あなたの考えを述べてください。提示されたアイデアを発展させたり、異議を唱えたり、洗練させたりしてください。",
   completeDiscussion: "議論全体",
   finalConclusions: "最終結論",
   conclusionOf: (name) => `${name}の結論`,
+
+  // Participant selection
+  participants: "参加者",
+  debateParticipants: "討論参加者",
+  voteParticipants: "投票参加者",
+  addParticipant: "追加",
+  addDebateParticipant: "討論参加者を追加",
+  addVoter: "投票者を追加",
+  removeParticipant: "削除",
+  role: "役割",
+  rolePlaceholder: "例: 肯定派、批判派...",
+  user: "ユーザー",
+  yourTurn: "あなたの番です",
+  yourRole: "あなたの役割",
+  submitResponse: "送信",
+  selectVote: "投票先を選択",
+  voteReason: "理由",
+  submitVote: "投票",
+  needOneParticipant: "参加者が1人以上必要です",
+  type: "タイプ",
+  yourPosition: "あなたの立場",
 };
 
 const translations: Record<Locale, Translations> = { en, ja };

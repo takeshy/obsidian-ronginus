@@ -5,6 +5,30 @@
 // CLI Provider types
 export type CliType = "gemini-cli" | "claude-cli" | "codex-cli";
 
+// Participant types
+export type ParticipantType = CliType | "user";
+
+// Debate participant (with role)
+export interface Participant {
+  id: string;              // Unique ID (e.g., "claude-1", "user-1")
+  type: ParticipantType;   // CLI type or "user"
+  role?: string;           // Role (e.g., "Affirmative", "Critical") - optional
+  displayName: string;     // Display name (e.g., "Claude (Affirmative)")
+}
+
+// Vote participant (no role needed)
+export interface Voter {
+  id: string;              // Unique ID
+  type: ParticipantType;   // CLI type or "user"
+  displayName: string;     // Display name (e.g., "Claude")
+}
+
+// Debate configuration
+export interface DebateConfig {
+  debateParticipants: Participant[];  // Debate participants (with roles)
+  voteParticipants: Voter[];          // Vote participants (no roles)
+}
+
 export interface Message {
   role: "user" | "assistant";
   content: string;
@@ -32,7 +56,8 @@ export interface DebateTurn {
 }
 
 export interface DebateResponse {
-  cliType: CliType;
+  participantId: string;
+  displayName: string;
   content: string;
   isConclusion: boolean;
   timestamp: number;
@@ -40,13 +65,16 @@ export interface DebateResponse {
 }
 
 export interface DebateConclusion {
-  cliType: CliType;
+  participantId: string;
+  displayName: string;
   content: string;
 }
 
 export interface VoteResult {
-  voter: CliType;
-  votedFor: CliType;
+  voterId: string;
+  voterDisplayName: string;
+  votedForId: string;
+  votedForDisplayName: string;
   reason?: string;
 }
 
@@ -55,12 +83,14 @@ export interface DebateResult {
   turns: DebateTurn[];
   conclusions: DebateConclusion[];
   votes: VoteResult[];
-  winner: CliType | null;
-  winners: CliType[];  // For tie/draw cases
+  winnerId: string | null;
+  winnerIds: string[];  // For tie/draw cases
   isDraw: boolean;
   finalConclusion: string;
   startTime: number;
   endTime: number;
+  debateParticipants: Participant[];
+  voteParticipants: Voter[];
 }
 
 // CLI config types
@@ -136,12 +166,22 @@ export interface DebateState {
   turns: DebateTurn[];
   conclusions: DebateConclusion[];
   votes: VoteResult[];
-  winner: CliType | null;
-  winners: CliType[];
+  winnerId: string | null;
+  winnerIds: string[];
   isDraw: boolean;
   finalConclusion: string;
   error?: string;
-  streamingResponses: Map<CliType, string>;
+  streamingResponses: Map<string, string>;  // participantId -> content
   startTime?: number;
   endTime?: number;
+  // User interaction
+  pendingUserInput?: {
+    type: "debate" | "vote";
+    participantId: string;
+    role?: string;
+  };
+  currentParticipantId?: string;
+  // Configuration
+  debateParticipants: Participant[];
+  voteParticipants: Voter[];
 }

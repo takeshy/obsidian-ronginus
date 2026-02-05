@@ -173,7 +173,7 @@ export class SettingsTab extends PluginSettingTab {
     // Show CLI count status
     const verifiedCount = countVerifiedClis(cliConfig);
     const statusEl = containerEl.createDiv({ cls: "ronginus-cli-count-status" });
-    if (verifiedCount >= 2) {
+    if (verifiedCount >= 1) {
       statusEl.addClass("ronginus-cli-count-ok");
       statusEl.textContent = i18n.clisVerifiedReady(verifiedCount);
     } else {
@@ -232,7 +232,6 @@ export class SettingsTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName(i18n.votePrompt)
-      .setDesc(i18n.votePromptDesc)
       .addTextArea((text) => {
         text
           .setPlaceholder("Vote prompt...")
@@ -244,6 +243,12 @@ export class SettingsTab extends PluginSettingTab {
         text.inputEl.rows = 4;
         text.inputEl.addClass("ronginus-settings-textarea");
       });
+
+    // Add note about auto-appended format instruction
+    containerEl.createEl("p", {
+      text: i18n.votePromptDesc,
+      cls: "ronginus-vote-prompt-note",
+    });
   }
 
   private createCliVerifyRow(

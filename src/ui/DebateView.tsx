@@ -3,12 +3,27 @@ import * as React from "react";
 import { createRoot, Root } from "react-dom/client";
 import type RonginusPlugin from "../plugin";
 import { DebatePanel } from "./DebatePanel";
-import type { DebateState, DebateResult } from "../types";
-import { countVerifiedClis } from "../types";
-import { DebateEngine } from "../core/debateEngine";
+import type { DebateState, DebateResult, Participant, Voter, ParticipantType } from "../types";
+import { DebateEngine, UserInputRequest, UserInputResponse } from "../core/debateEngine";
 import { t } from "../i18n";
 
 export const VIEW_TYPE_DEBATE = "ronginus-debate-view";
+
+// Helper to get base display name for a participant type
+function getBaseDisplayName(type: ParticipantType): string {
+  switch (type) {
+    case "gemini-cli":
+      return "Gemini";
+    case "claude-cli":
+      return "Claude";
+    case "codex-cli":
+      return "Codex";
+    case "user":
+      return t().user;
+    default:
+      return type;
+  }
+}
 
 export class DebateView extends ItemView {
   plugin: RonginusPlugin;
@@ -16,10 +31,79 @@ export class DebateView extends ItemView {
   private debateEngine: DebateEngine | null = null;
   private state: DebateState = this.getInitialState();
   private panelKey: number = 0;
+  private userInputResolver: ((response: UserInputResponse) => void) | null = null;
 
   constructor(leaf: WorkspaceLeaf, plugin: RonginusPlugin) {
     super(leaf);
     this.plugin = plugin;
+  }
+
+  private getDefaultParticipants(): Participant[] {
+    const participants: Participant[] = [];
+    const cliConfig = this.plugin.settings.cliConfig;
+
+    if (cliConfig.geminiVerified) {
+      participants.push({
+        id: "gemini-cli-1",
+        type: "gemini-cli",
+        displayName: getBaseDisplayName("gemini-cli"),
+      });
+    }
+    if (cliConfig.claudeVerified) {
+      participants.push({
+        id: "claude-cli-1",
+        type: "claude-cli",
+        displayName: getBaseDisplayName("claude-cli"),
+      });
+    }
+    if (cliConfig.codexVerified) {
+      participants.push({
+        id: "codex-cli-1",
+        type: "codex-cli",
+        displayName: getBaseDisplayName("codex-cli"),
+      });
+    }
+
+    return participants;
+  }
+
+  private getDefaultVoters(participants?: Participant[]): Voter[] {
+    // If participants provided, derive voters from them
+    if (participants && participants.length > 0) {
+      return participants.map(p => ({
+        id: `${p.type}-voter-${p.id}`,
+        type: p.type,
+        displayName: getBaseDisplayName(p.type),
+      }));
+    }
+
+    // Otherwise, use verified CLIs
+    const voters: Voter[] = [];
+    const cliConfig = this.plugin.settings.cliConfig;
+
+    if (cliConfig.geminiVerified) {
+      voters.push({
+        id: "gemini-cli-voter-1",
+        type: "gemini-cli",
+        displayName: getBaseDisplayName("gemini-cli"),
+      });
+    }
+    if (cliConfig.claudeVerified) {
+      voters.push({
+        id: "claude-cli-voter-1",
+        type: "claude-cli",
+        displayName: getBaseDisplayName("claude-cli"),
+      });
+    }
+    if (cliConfig.codexVerified) {
+      voters.push({
+        id: "codex-cli-voter-1",
+        type: "codex-cli",
+        displayName: getBaseDisplayName("codex-cli"),
+      });
+    }
+
+    return voters;
   }
 
   private getInitialState(): DebateState {
@@ -31,13 +115,15 @@ export class DebateView extends ItemView {
       turns: [],
       conclusions: [],
       votes: [],
-      winner: null,
-      winners: [],
+      winnerId: null,
+      winnerIds: [],
       isDraw: false,
       finalConclusion: "",
       streamingResponses: new Map(),
       startTime: undefined,
       endTime: undefined,
+      debateParticipants: [],
+      voteParticipants: [],
     };
   }
 
@@ -58,6 +144,14 @@ export class DebateView extends ItemView {
     container.empty();
     container.addClass("ronginus-debate-container");
 
+    // Initialize state with default participants
+    const defaultParticipants = this.getDefaultParticipants();
+    this.state = {
+      ...this.getInitialState(),
+      debateParticipants: defaultParticipants,
+      voteParticipants: this.getDefaultVoters(defaultParticipants),
+    };
+
     this.root = createRoot(container);
     this.renderPanel();
     await Promise.resolve();
@@ -75,10 +169,14 @@ export class DebateView extends ItemView {
         key={this.panelKey}
         state={this.state}
         settings={this.plugin.settings}
-        onStartDebate={(theme, turns) => { void this.startDebate(theme, turns); }}
+        onStartDebate={(theme, turns, debateParticipants, voteParticipants) => {
+          void this.startDebate(theme, turns, debateParticipants, voteParticipants);
+        }}
         onStopDebate={() => this.stopDebate()}
         onSaveNote={() => { void this.saveNote(); }}
         onReset={() => this.resetDebate()}
+        onUserDebateInput={(content) => this.handleUserDebateInput(content)}
+        onUserVoteInput={(votedForId, reason) => this.handleUserVoteInput(votedForId, reason)}
       />
     );
   }
@@ -88,17 +186,37 @@ export class DebateView extends ItemView {
     this.renderPanel();
   }
 
-  private async startDebate(theme: string, turns: number): Promise<void> {
+  private handleUserDebateInput(content: string): void {
+    if (this.userInputResolver) {
+      this.userInputResolver({ content });
+      this.userInputResolver = null;
+      this.updateState({ pendingUserInput: undefined });
+    }
+  }
+
+  private handleUserVoteInput(votedForId: string, reason: string): void {
+    if (this.userInputResolver) {
+      this.userInputResolver({ content: "", votedForId, reason });
+      this.userInputResolver = null;
+      this.updateState({ pendingUserInput: undefined });
+    }
+  }
+
+  private async startDebate(
+    theme: string,
+    turns: number,
+    debateParticipants: Participant[],
+    voteParticipants: Voter[]
+  ): Promise<void> {
     const i18n = t();
     if (!theme.trim()) {
       new Notice(i18n.enterTheme);
       return;
     }
 
-    // Check for verified CLIs
-    const verifiedCount = countVerifiedClis(this.plugin.settings.cliConfig);
-    if (verifiedCount < 2) {
-      new Notice(i18n.needTwoClis);
+    // Check for at least 1 participant (not 2 verified CLIs)
+    if (debateParticipants.length < 1) {
+      new Notice(i18n.needOneParticipant);
       return;
     }
 
@@ -114,14 +232,16 @@ export class DebateView extends ItemView {
       turns: [],
       conclusions: [],
       votes: [],
-      winner: null,
-      winners: [],
+      winnerId: null,
+      winnerIds: [],
       isDraw: false,
       finalConclusion: "",
       error: undefined,
       streamingResponses: new Map(),
       startTime: undefined,
       endTime: undefined,
+      debateParticipants,
+      voteParticipants,
     });
 
     this.debateEngine.setCallbacks({
@@ -134,9 +254,9 @@ export class DebateView extends ItemView {
           streamingResponses: new Map(),
         });
       },
-      onResponseStream: (cliType, content) => {
+      onResponseStream: (participantId, content) => {
         const newMap = new Map(this.state.streamingResponses);
-        newMap.set(cliType, content);
+        newMap.set(participantId, content);
         this.updateState({ streamingResponses: newMap });
       },
       onTurnComplete: (turn) => {
@@ -145,9 +265,9 @@ export class DebateView extends ItemView {
           streamingResponses: new Map(),
         });
       },
-      onConclusionStream: (cliType, content) => {
+      onConclusionStream: (participantId, content) => {
         const newMap = new Map(this.state.streamingResponses);
-        newMap.set(cliType, content);
+        newMap.set(participantId, content);
         this.updateState({ streamingResponses: newMap });
       },
       onConclusionComplete: (conclusion) => {
@@ -163,8 +283,8 @@ export class DebateView extends ItemView {
       onDebateComplete: (result) => {
         this.updateState({
           phase: "complete",
-          winner: result.winner,
-          winners: result.winners,
+          winnerId: result.winnerId,
+          winnerIds: result.winnerIds,
           isDraw: result.isDraw,
           finalConclusion: result.finalConclusion,
           startTime: result.startTime,
@@ -181,10 +301,23 @@ export class DebateView extends ItemView {
         });
         new Notice(t().debateError(error.message));
       },
+      onUserInputRequest: async (request: UserInputRequest): Promise<UserInputResponse> => {
+        return new Promise((resolve) => {
+          this.userInputResolver = resolve;
+          this.updateState({
+            pendingUserInput: {
+              type: request.type,
+              participantId: request.participantId,
+              role: request.role,
+            },
+            currentParticipantId: request.participantId,
+          });
+        });
+      },
     });
 
     try {
-      await this.debateEngine.runDebate(theme, turns);
+      await this.debateEngine.runDebate(theme, turns, debateParticipants, voteParticipants);
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
         return;
@@ -195,7 +328,8 @@ export class DebateView extends ItemView {
 
   private stopDebate(): void {
     this.debateEngine?.stop();
-    this.updateState({ phase: "idle" });
+    this.userInputResolver = null;
+    this.updateState({ phase: "idle", pendingUserInput: undefined });
     new Notice(t().debateStopped);
   }
 
@@ -211,12 +345,14 @@ export class DebateView extends ItemView {
       turns: this.state.turns,
       conclusions: this.state.conclusions,
       votes: this.state.votes,
-      winner: this.state.winner,
-      winners: this.state.winners,
+      winnerId: this.state.winnerId,
+      winnerIds: this.state.winnerIds,
       isDraw: this.state.isDraw,
       finalConclusion: this.state.finalConclusion,
       startTime: this.state.startTime ?? Date.now(),
       endTime: this.state.endTime ?? Date.now(),
+      debateParticipants: this.state.debateParticipants,
+      voteParticipants: this.state.voteParticipants,
     };
 
     const markdown = DebateEngine.generateMarkdownNote(result);
@@ -250,7 +386,13 @@ export class DebateView extends ItemView {
 
   private resetDebate(): void {
     this.debateEngine?.stop();
-    this.state = this.getInitialState();
+    this.userInputResolver = null;
+    const defaultParticipants = this.getDefaultParticipants();
+    this.state = {
+      ...this.getInitialState(),
+      debateParticipants: defaultParticipants,
+      voteParticipants: this.getDefaultVoters(defaultParticipants),
+    };
     this.panelKey++;
     this.renderPanel();
   }
