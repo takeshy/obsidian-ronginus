@@ -39,6 +39,12 @@ npm install -g @openai/codex
 
 ## Installation
 
+### Using BRAT (Recommended)
+1. Install [BRAT](https://github.com/TfTHacker/obsidian42-brat) from Obsidian Community Plugins
+2. Open BRAT settings and click "Add Beta plugin"
+3. Enter `https://github.com/takeshy/obsidian-ronginus` and click "Add Plugin"
+4. Enable the plugin in Obsidian Settings > Community Plugins
+
 ### Manual Installation
 1. Download `main.js`, `manifest.json`, and `styles.css` from the latest release
 2. Create a folder `ronginus` in your vault's `.obsidian/plugins/` directory
