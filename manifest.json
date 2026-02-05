@@ -1,0 +1,10 @@
+{
+	"id": "ronginus",
+	"name": "Ronginus - AI Debate",
+	"minAppVersion": "0.15.0",
+	"description": "AI debate plugin where Gemini CLI, Claude Code, and Codex CLI discuss themes in parallel turns with voting.",
+	"author": "takeshy",
+	"authorUrl": "https://github.com/takeshy",
+	"isDesktopOnly": true,
+	"version": "1.0.0"
+}
